@@ -1,0 +1,7 @@
+node_modules
+config.json
+token.json
+db.json
+.vscode
+.idea
+.DS_Store

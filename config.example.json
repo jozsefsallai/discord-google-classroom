@@ -1,0 +1,24 @@
+{
+  "server": {
+    "port": 3000
+  },
+  "bot": {
+    "token": "discord bot token",
+    "channel": "the ID of the notification channel",
+    "checkInterval": 5
+  },
+  "google": {
+    "clientId": "Google OAuth2 client id",
+    "clientSecret": "Google OAuth2 client secret",
+    "authURI": "https://accounts.google.com/o/oauth2/auth",
+    "tokenURI": "https://oauth2.googleapis.com/token",
+    "redirectURI": "http://server_url/authorize",
+    "scopes": [
+      "https://www.googleapis.com/auth/classroom.courses.readonly",
+      "https://www.googleapis.com/auth/classroom.announcements.readonly"
+    ],
+    "enrollmentCodes": [
+      "list of course enrollment codes"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "discord-google-classroom",
+  "version": "1.0.0",
+  "description": "A Discord bot that sends notifications to a channel about updates in Google Classroom.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --ext .js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jozsefsallai/discord-classroom.git"
+  },
+  "author": "@jozsefsallai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jozsefsallai/discord-classroom/issues"
+  },
+  "homepage": "https://github.com/jozsefsallai/discord-classroom#readme",
+  "dependencies": {
+    "date-fns": "^2.16.1",
+    "discord.js": "^12.3.1",
+    "express": "^4.17.1",
+    "googleapis": "^59.0.0",
+    "inquirer": "^7.3.3",
+    "lodash.differenceby": "^4.8.0",
+    "lodash.flatten": "^4.4.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.9.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
+  }
+}
