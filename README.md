@@ -92,6 +92,10 @@ Specifies how often (minutes) the bot will check your classroom for news. The
 bot will not send a message to your Discord channel if there aren't any new
 posts.
 
+### `bot.pingEveryone`
+
+If set to `true`, the bot will ping @everyone when sending a notification.
+
 ### `google.*`
 
 Properties that are required for authenticating with your Google app.
