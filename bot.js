@@ -6,7 +6,13 @@ const bot = new Client();
 
 const startBot = async classroom => {
   bot.on('ready', async () => {
-    setInterval(() => check(bot, classroom), config.bot.checkInterval * 1000 * 60);
+    setInterval(async () => check(bot, classroom), config.bot.checkInterval * 1000 * 60);
+  });
+
+  bot.on('message', async (message) => {
+    if (process.env.NODE_ENV !== 'production' && message.content === 'cr.debug') {
+      await check(bot, classroom);
+    }
   });
 
   await bot.login(config.bot.token);

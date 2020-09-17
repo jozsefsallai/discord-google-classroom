@@ -18,6 +18,13 @@ https://www.googleapis.com/auth/classroom.courses.readonly
 https://www.googleapis.com/auth/classroom.announcements.readonly
 ```
 
+If you want the attached Google Drive files to be uploaded to the channel (as
+long as they're less than 8 MB in size), you also need this scope:
+
+```
+https://www.googleapis.com/auth/drive.readonly
+```
+
 ## Getting Started
 
 ### 1. Clone the repo
@@ -64,7 +71,7 @@ step and the Express server will not start either.
 Open the following link in your browser:
 
 ```
-https://discord.com/oauth2/authorize?client_id=CLIENT_ID?scope=bot
+https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot
 ```
 
 where you replace "CLIENT_ID" with the app ID of your bot (not the user ID).
@@ -120,9 +127,18 @@ bot to function correctly.
 to course objects. `classroom.announcements.readonly` is obviously required for
 listing and checking new posts.
 
+`drive.readonly` is an optional scope that is used for fetching the attached
+Google Drive files and sending them to your Discord channel. If you don't need
+this feature, just don't provide this scope.
+
 #### `enrollmentCodes`
 
 An array of codes that you used when you joined the Google Classroom course.
+
+## TODO
+
+- [ ] Support for other attachment types in announcements (link, YouTube, form)
+- [ ] Coursework notifications
 
 ## Contribution
 
