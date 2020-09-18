@@ -47,10 +47,11 @@ cp config.example.json config.json
 vim config.json
 ```
 
-### 4. Start the server and authorize your app
+### 4. Build the app and start it to authorize your app
 
 ```
-node index.js
+npm run build
+npm run start
 ```
 
 On the first run, you will be prompted to open a URL to authorize your
