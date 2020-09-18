@@ -5,3 +5,4 @@ db.json
 .vscode
 .idea
 .DS_Store
+/dist

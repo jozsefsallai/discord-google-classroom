@@ -1,15 +1,16 @@
-const { Client } = require('discord.js');
-const config = require('./config.json');
-const check = require('./lib/check');
+import { Client } from 'discord.js';
+import config from './config';
+import check from './lib/check';
+import Classroom from './lib/Classroom';
 
 const bot = new Client();
 
-const startBot = async classroom => {
+const startBot = async (classroom: Classroom) => {
   bot.on('ready', async () => {
     setInterval(async () => check(bot, classroom), config.bot.checkInterval * 1000 * 60);
   });
 
-  bot.on('message', async (message) => {
+  bot.on('message', async message => {
     if (process.env.NODE_ENV !== 'production' && message.content === 'cr.debug') {
       await check(bot, classroom);
     }
@@ -19,4 +20,4 @@ const startBot = async classroom => {
   console.log('Bot started.');
 };
 
-module.exports = startBot;
+export default startBot;

@@ -1,5 +1,9 @@
 {
   "verbose": true,
+  "exec": "npm run start",
+  "watch": [
+    "src/**/*.ts"
+  ],
   "ignore": [
     "db.json",
     "token.json"
