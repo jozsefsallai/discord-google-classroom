@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import express from 'express';
-const app = express();
 
 import config from './config';
 import Classroom from './lib/Classroom';
@@ -12,6 +11,7 @@ import { Server } from 'http';
 
 const PORT = config.server.port;
 
+const app = express();
 app.get('/authorize', (req, res) => res.json({ ok: true, code: req.query.code }));
 
 let server: Server | null = null;

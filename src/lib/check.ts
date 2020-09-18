@@ -17,7 +17,7 @@ import {
 } from 'discord.js';
 
 import Classroom from './Classroom';
-import { classroom_v1 } from 'googleapis';
+import { classroom_v1 as ClassroomAPI } from 'googleapis';
 
 const DB_PATH = path.join(__dirname, '../..', 'db.json');
 
@@ -31,7 +31,7 @@ interface IEmbedData {
   materials: IGoogleDriveMaterial[]
 }
 
-const buildEmbed = (classroom: Classroom, entry: classroom_v1.Schema$Announcement): IEmbedData => {
+const buildEmbed = (classroom: Classroom, entry: ClassroomAPI.Schema$Announcement): IEmbedData => {
   const course = classroom.getCourseById(`${entry.courseId}`);
 
   const title = course
@@ -87,11 +87,11 @@ const buildEmbed = (classroom: Classroom, entry: classroom_v1.Schema$Announcemen
   };
 };
 
-const updateDB = (data: classroom_v1.Schema$Announcement[]) => {
+const updateDB = (data: ClassroomAPI.Schema$Announcement[]) => {
   fs.writeFileSync(DB_PATH, JSON.stringify(data), { encoding: 'utf8' });
 };
 
-const sendUpdate = async (bot: Client, classroom: Classroom, data: classroom_v1.Schema$Announcement[]) => {
+const sendUpdate = async (bot: Client, classroom: Classroom, data: ClassroomAPI.Schema$Announcement[]) => {
   if (!data.length) {
     return;
   }
@@ -115,7 +115,7 @@ const sendUpdate = async (bot: Client, classroom: Classroom, data: classroom_v1.
         const file = await classroom.getFile(material.id);
 
         if (file) {
-          await (channel as TextChannel).send(new MessageAttachment(file.buffer, file.title))
+          await (channel as TextChannel).send(new MessageAttachment(file.buffer, file.title));
         }
       }
     }
@@ -132,7 +132,7 @@ const check = async (bot: Client, classroom: Classroom) => {
   }
 
   const raw = fs.readFileSync(DB_PATH, { encoding: 'utf8' });
-  const json: classroom_v1.Schema$Announcement[] = JSON.parse(raw);
+  const json: ClassroomAPI.Schema$Announcement[] = JSON.parse(raw);
 
   const newItems = differenceBy(announcements, json, 'id');
 

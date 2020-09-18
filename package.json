@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "lint": "eslint . --ext .js",
+    "lint": "eslint src --ext .ts",
     "start": "ts-node src",
     "watch": "nodemon --config nodemon.json"
   },

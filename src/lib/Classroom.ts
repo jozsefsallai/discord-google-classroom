@@ -3,7 +3,7 @@ import config from '../config';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { google, classroom_v1 } from 'googleapis';
+import { google, classroom_v1 as ClassroomAPI } from 'googleapis';
 import { OAuth2Client, Credentials } from 'google-auth-library';
 
 import inquirer from 'inquirer';
@@ -19,7 +19,7 @@ export interface IDriveFileData {
 
 class Classroom {
   private client: OAuth2Client;
-  private courses: classroom_v1.Schema$Course[];
+  private courses: ClassroomAPI.Schema$Course[];
 
   constructor() {
     const { google: { clientId, clientSecret, redirectURI } } = config;
@@ -86,10 +86,10 @@ class Classroom {
     }
   }
 
-  async list(): Promise<classroom_v1.Schema$Announcement[]> {
+  async list(): Promise<ClassroomAPI.Schema$Announcement[]> {
     const classroom = google.classroom({ version: 'v1', auth: this.client });
 
-    const allAnnouncements: classroom_v1.Schema$Announcement[] = [];
+    const allAnnouncements: ClassroomAPI.Schema$Announcement[] = [];
 
     for await (const c of this.courses) {
       const { data: { announcements } } = await classroom.courses.announcements.list({
@@ -104,7 +104,7 @@ class Classroom {
     return allAnnouncements.sort((a, b) => timestamp(`${a.updateTime}`) - timestamp(`${b.updateTime}`));
   }
 
-  getCourseById(id: string): classroom_v1.Schema$Course | undefined {
+  getCourseById(id: string): ClassroomAPI.Schema$Course | undefined {
     return this.courses.find(c => c.id === id);
   }
 
