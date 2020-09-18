@@ -21,14 +21,24 @@ import { classroom_v1 as ClassroomAPI } from 'googleapis';
 
 const DB_PATH = path.join(__dirname, '../..', 'db.json');
 
-export interface IGoogleDriveMaterial {
-  id: string;
+interface IMaterial {
   displayText: string;
+}
+
+interface IGoogleDriveMaterial extends IMaterial {
+  id: string;
+}
+
+interface IGenericMaterial extends IMaterial {
+  url: string;
 }
 
 interface IEmbedData {
   embed: MessageEmbed;
-  materials: IGoogleDriveMaterial[]
+  files: IGoogleDriveMaterial[];
+  youtube: IGenericMaterial[];
+  links: IGenericMaterial[];
+  forms: IGenericMaterial[];
 }
 
 const buildEmbed = (classroom: Classroom, entry: ClassroomAPI.Schema$Announcement): IEmbedData => {
@@ -44,14 +54,42 @@ const buildEmbed = (classroom: Classroom, entry: ClassroomAPI.Schema$Announcemen
 
   const url = `${entry.alternateLink}`;
 
-  const materials: IGoogleDriveMaterial[] = [];
+  const files: IGoogleDriveMaterial[] = [];
+  const youtube: IGenericMaterial[] = [];
+  const links: IGenericMaterial[] = [];
+  const forms: IGenericMaterial[] = [];
+
   if (entry.materials) {
     entry.materials.forEach(material => {
       if (material.driveFile) {
         const { driveFile: { driveFile } } = material;
-        driveFile && materials.push({
+        driveFile && files.push({
           id: `${driveFile.id}`,
           displayText: `[${driveFile.title}](${driveFile.alternateLink})`
+        });
+      }
+
+      if (material.youtubeVideo) {
+        const { youtubeVideo } = material;
+        youtubeVideo && youtube.push({
+          url: `${youtubeVideo.alternateLink}`,
+          displayText: `[${youtubeVideo.title}](${youtubeVideo.alternateLink})`
+        });
+      }
+
+      if (material.link) {
+        const { link } = material;
+        link && links.push({
+          url: `${link.url}`,
+          displayText: `[${link.title}](${link.url})`
+        });
+      }
+
+      if (material.form) {
+        const { form } = material;
+        form && forms.push({
+          url: `${form.formUrl}`,
+          displayText: `[${form.title}](${form.formUrl})`
         });
       }
     });
@@ -67,11 +105,35 @@ const buildEmbed = (classroom: Classroom, entry: ClassroomAPI.Schema$Announcemen
     // examples
   });
 
-  if (materials.length) {
+  if (files.length) {
     fields.push({
       name: 'Attached Google Drive documents:',
-      value: materials.map(m => m.displayText).join(', '),
-      inline: false
+      value: files.map(m => m.displayText).join(', '),
+      inline: true
+    });
+  }
+
+  if (youtube.length) {
+    fields.push({
+      name: 'Attached YouTube videos:',
+      value: youtube.map(y => y.displayText).join(', '),
+      inline: true
+    });
+  }
+
+  if (links.length) {
+    fields.push({
+      name: 'Attached links:',
+      value: links.map(l => l.displayText).join(', '),
+      inline: true
+    });
+  }
+
+  if (forms.length) {
+    fields.push({
+      name: 'Attached forms:',
+      value: forms.map(f => f.displayText).join(', '),
+      inline: true
     });
   }
 
@@ -83,7 +145,10 @@ const buildEmbed = (classroom: Classroom, entry: ClassroomAPI.Schema$Announcemen
 
   return {
     embed,
-    materials
+    files,
+    youtube,
+    links,
+    forms
   };
 };
 
@@ -96,10 +161,8 @@ const sendUpdate = async (bot: Client, classroom: Classroom, data: ClassroomAPI.
     return;
   }
 
-  for (let i = 0; i < data.length; i++) {
-    const entry = data[i];
-
-    const { embed, materials } = buildEmbed(classroom, entry);
+  for (const entry of data) {
+    const { embed, files, youtube, links, forms } = buildEmbed(classroom, entry);
     const channel = bot.channels.cache.get(config.bot.channel);
 
     if (channel) {
@@ -109,14 +172,31 @@ const sendUpdate = async (bot: Client, classroom: Classroom, data: ClassroomAPI.
       });
     }
 
-    if (materials.length && config.google.scopes.includes('https://www.googleapis.com/auth/drive.readonly')) {
-      for (let j = 0; j < materials.length; j++) {
-        const material = materials[j];
-        const file = await classroom.getFile(material.id);
+    if (files.length && config.google.scopes.includes('https://www.googleapis.com/auth/drive.readonly')) {
+      for (const file of files) {
+        const fileData = await classroom.getFile(file.id);
 
-        if (file) {
-          await (channel as TextChannel).send(new MessageAttachment(file.buffer, file.title));
+        if (fileData) {
+          await (channel as TextChannel).send(new MessageAttachment(fileData.buffer, fileData.title));
         }
+      }
+    }
+
+    if (youtube.length) {
+      for (const video of youtube) {
+        await (channel as TextChannel).send(video.url);
+      }
+    }
+
+    if (links.length) {
+      for (const link of links) {
+        await (channel as TextChannel).send(link.url);
+      }
+    }
+
+    if (forms.length) {
+      for (const form of forms) {
+        await (channel as TextChannel).send(form.url);
       }
     }
   }

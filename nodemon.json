@@ -1,6 +1,6 @@
 {
   "verbose": true,
-  "exec": "npm run start",
+  "exec": "npm run dev",
   "watch": [
     "src/**/*.ts"
   ],

@@ -138,7 +138,7 @@ An array of codes that you used when you joined the Google Classroom course.
 
 ## TODO
 
-- [ ] Support for other attachment types in announcements (link, YouTube, form)
+- [x] Support for other attachment types in announcements (link, YouTube, form)
 - [ ] Coursework notifications
 
 ## Contribution

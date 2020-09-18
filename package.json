@@ -1,12 +1,13 @@
 {
   "name": "discord-google-classroom",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Discord bot that sends notifications to a channel about updates in Google Classroom.",
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
+    "dev": "ts-node src",
     "lint": "eslint src --ext .ts",
-    "start": "ts-node src",
+    "start": "node dist/index",
     "watch": "nodemon --config nodemon.json"
   },
   "repository": {
