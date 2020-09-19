@@ -5,6 +5,7 @@ import * as path from 'path';
 
 import { google, classroom_v1 as ClassroomAPI } from 'googleapis';
 import { OAuth2Client, Credentials } from 'google-auth-library';
+import { IClassroom, IDriveFileData } from './IClassroom';
 
 import inquirer from 'inquirer';
 
@@ -12,12 +13,7 @@ const TOKEN_PATH = path.join(__dirname, '../..', 'token.json');
 
 const timestamp = (str: string): number => new Date(str).getTime();
 
-export interface IDriveFileData {
-  title: string;
-  buffer: Buffer;
-}
-
-class Classroom {
+class Classroom implements IClassroom {
   private client: OAuth2Client;
   private courses: ClassroomAPI.Schema$Course[];
 
@@ -44,6 +40,15 @@ class Classroom {
     ]);
 
     const { tokens } = await this.client.getToken(code);
+
+    if (fs.existsSync(TOKEN_PATH)) {
+      if (!tokens.refresh_token) {
+        const raw = fs.readFileSync(TOKEN_PATH, { encoding: 'utf8' });
+        const json: Credentials = JSON.parse(raw);
+        tokens.refresh_token = json.refresh_token;
+      }
+    }
+
     fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens), { encoding: 'utf8' });
 
     return tokens;
@@ -86,7 +91,7 @@ class Classroom {
     }
   }
 
-  async list(): Promise<ClassroomAPI.Schema$Announcement[]> {
+  async listAnnouncements(): Promise<ClassroomAPI.Schema$Announcement[]> {
     const classroom = google.classroom({ version: 'v1', auth: this.client });
 
     const allAnnouncements: ClassroomAPI.Schema$Announcement[] = [];
@@ -102,6 +107,24 @@ class Classroom {
     }
 
     return allAnnouncements.sort((a, b) => timestamp(`${a.updateTime}`) - timestamp(`${b.updateTime}`));
+  }
+
+  async listCourseWork(): Promise<ClassroomAPI.Schema$CourseWork[]> {
+    const classroom = google.classroom({ version: 'v1', auth: this.client });
+
+    const allCourseWork: ClassroomAPI.Schema$CourseWork[] = [];
+
+    for await (const c of this.courses) {
+      const { data: { courseWork } } = await classroom.courses.courseWork.list({
+        courseId: (c.id as string)
+      });
+
+      if (courseWork) {
+        allCourseWork.push(...courseWork);
+      }
+    }
+
+    return allCourseWork.sort((a, b) => timestamp(`${a.updateTime}`) - timestamp(`${b.updateTime}`));
   }
 
   getCourseById(id: string): ClassroomAPI.Schema$Course | undefined {

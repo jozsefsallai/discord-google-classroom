@@ -1,11 +1,11 @@
 import { Client } from 'discord.js';
 import config from './config';
 import check from './lib/check';
-import Classroom from './lib/Classroom';
+import { IClassroom } from './lib/IClassroom';
 
 const bot = new Client();
 
-const startBot = async (classroom: Classroom) => {
+const startBot = async (classroom: IClassroom) => {
   bot.on('ready', async () => {
     setInterval(async () => check(bot, classroom), config.bot.checkInterval * 1000 * 60);
   });

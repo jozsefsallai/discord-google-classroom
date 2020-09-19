@@ -16,7 +16,7 @@ import {
   TextChannel
 } from 'discord.js';
 
-import Classroom from './Classroom';
+import { IClassroom } from './IClassroom';
 import { classroom_v1 as ClassroomAPI } from 'googleapis';
 
 const DB_PATH = path.join(__dirname, '../..', 'db.json');
@@ -41,7 +41,7 @@ interface IEmbedData {
   forms: IGenericMaterial[];
 }
 
-const buildEmbed = (classroom: Classroom, entry: ClassroomAPI.Schema$Announcement): IEmbedData => {
+const buildEmbed = (classroom: IClassroom, entry: ClassroomAPI.Schema$Announcement): IEmbedData => {
   const course = classroom.getCourseById(`${entry.courseId}`);
 
   const title = course
@@ -156,7 +156,7 @@ const updateDB = (data: ClassroomAPI.Schema$Announcement[]) => {
   fs.writeFileSync(DB_PATH, JSON.stringify(data), { encoding: 'utf8' });
 };
 
-const sendUpdate = async (bot: Client, classroom: Classroom, data: ClassroomAPI.Schema$Announcement[]) => {
+const sendUpdate = async (bot: Client, classroom: IClassroom, data: ClassroomAPI.Schema$Announcement[]) => {
   if (!data.length) {
     return;
   }
@@ -202,8 +202,8 @@ const sendUpdate = async (bot: Client, classroom: Classroom, data: ClassroomAPI.
   }
 };
 
-const check = async (bot: Client, classroom: Classroom) => {
-  const announcements = await classroom.list();
+const check = async (bot: Client, classroom: IClassroom) => {
+  const announcements = await classroom.listAnnouncements();
 
   if (!fs.existsSync(DB_PATH)) {
     sendUpdate(bot, classroom, announcements);
