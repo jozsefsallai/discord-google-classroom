@@ -12,6 +12,7 @@ interface IBotConfig {
   channel: string;
   checkInterval: number;
   pingEveryone?: boolean;
+  timezone?: string;
 }
 
 interface IGoogleConfig {

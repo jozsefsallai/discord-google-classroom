@@ -1,12 +1,13 @@
 import config from '../config';
 
 import differenceBy from 'lodash.differenceby';
-import { format } from 'date-fns';
 
 import * as fs from 'fs';
 import * as path from 'path';
 
 import truncate from './truncate';
+import buildDate from './buildDate';
+import formatDate from './formatDate';
 
 import {
   Client,
@@ -41,16 +42,23 @@ interface IEmbedData {
   forms: IGenericMaterial[];
 }
 
-const buildEmbed = (classroom: IClassroom, entry: ClassroomAPI.Schema$Announcement): IEmbedData => {
+interface IDatabase {
+  announcements: ClassroomAPI.Schema$Announcement[];
+  courseWork: ClassroomAPI.Schema$CourseWork[];
+}
+
+interface IGenericEntry extends ClassroomAPI.Schema$Announcement, ClassroomAPI.Schema$CourseWork {}
+
+const buildEmbed = <Entry extends IGenericEntry>(classroom: IClassroom, entry: Entry, isCourseWork: boolean = false): IEmbedData => {
   const course = classroom.getCourseById(`${entry.courseId}`);
 
   const title = course
-    ? `New post in "${course.name}"`
-    : 'New post in classroom';
+    ? `New ${isCourseWork ? 'classwork' : 'post'} in "${course.name}"`
+    : `New ${isCourseWork ? 'classwork' : 'post'} in classroom`;
 
-  const description = entry.text
-    ? truncate(entry.text, 2048)
-    : '[post has no text]';
+  const description = isCourseWork
+    ? entry.description ? truncate(entry.description, 2048) : '[classwork has no instructions]'
+    : entry.text ? truncate(entry.text, 2048) : '[post has no text]';
 
   const url = `${entry.alternateLink}`;
 
@@ -99,11 +107,39 @@ const buildEmbed = (classroom: IClassroom, entry: ClassroomAPI.Schema$Announceme
 
   fields.push({
     name: 'Created at:',
-    value: format(new Date(`${entry.creationTime}`), 'MMMM dd, yyyy h:mm a'),
+    value: formatDate(new Date(`${entry.creationTime}`)),
     inline: false
     // why is inline a required parameter, it's almost never mentioned in the
     // examples
   });
+
+  if (entry.dueDate && entry.dueTime) {
+    const { year, month, day } = entry.dueDate;
+    const { hours, minutes } = entry.dueTime;
+    const dueDate = buildDate({ year, month, day, hours, minutes });
+
+    fields.push({
+      name: 'Assignment due date:',
+      value: formatDate(dueDate),
+      inline: true
+    });
+  }
+
+  if (entry.workType) {
+    fields.push({
+      name: 'Classwork type:',
+      value: entry.workType,
+      inline: true
+    });
+  }
+
+  if (entry.maxPoints) {
+    fields.push({
+      name: 'Max points:',
+      value: `${entry.maxPoints}`,
+      inline: true
+    });
+  }
 
   if (files.length) {
     fields.push({
@@ -152,73 +188,102 @@ const buildEmbed = (classroom: IClassroom, entry: ClassroomAPI.Schema$Announceme
   };
 };
 
-const updateDB = (data: ClassroomAPI.Schema$Announcement[]) => {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data), { encoding: 'utf8' });
+const updateDB = (announcements: ClassroomAPI.Schema$Announcement[], courseWork: ClassroomAPI.Schema$CourseWork[]) => {
+  fs.writeFileSync(DB_PATH, JSON.stringify({ announcements, courseWork }), { encoding: 'utf8' });
 };
 
-const sendUpdate = async (bot: Client, classroom: IClassroom, data: ClassroomAPI.Schema$Announcement[]) => {
-  if (!data.length) {
+const sendAttachments = async (classroom: IClassroom, channel: TextChannel, { files, youtube, links, forms }: IEmbedData) => {
+  if (files.length && config.google.scopes.includes('https://www.googleapis.com/auth/drive.readonly')) {
+    for (const file of files) {
+      const fileData = await classroom.getFile(file.id);
+
+      if (fileData) {
+        await channel.send(new MessageAttachment(fileData.buffer, fileData.title));
+      }
+    }
+  }
+
+  if (youtube.length) {
+    for (const video of youtube) {
+      await channel.send(video.url);
+    }
+  }
+
+  if (links.length) {
+    for (const link of links) {
+      await channel.send(link.url);
+    }
+  }
+
+  if (forms.length) {
+    for (const form of forms) {
+      await channel.send(form.url);
+    }
+  }
+};
+
+const sendUpdate = async (
+  bot: Client,
+  classroom: IClassroom,
+  announcements: ClassroomAPI.Schema$Announcement[],
+  courseWorks: ClassroomAPI.Schema$CourseWork[]
+) => {
+  if (!announcements.length && !courseWorks.length) {
     return;
   }
 
-  for (const entry of data) {
-    const { embed, files, youtube, links, forms } = buildEmbed(classroom, entry);
-    const channel = bot.channels.cache.get(config.bot.channel);
+  const channel = bot.channels.cache.get(config.bot.channel) as TextChannel;
+
+  for (const entry of announcements) {
+    const { embed, files, youtube, links, forms } = buildEmbed<ClassroomAPI.Schema$Announcement>(classroom, entry);
 
     if (channel) {
-      await (channel as TextChannel).send({
+      await channel.send({
         content: `${config.bot.pingEveryone ? '@everyone ' : ''} **New update in your classes on Google Classroom!**`,
         embed
       });
+
+      await sendAttachments(classroom, channel, { embed, files, youtube, links, forms });
     }
+  }
 
-    if (files.length && config.google.scopes.includes('https://www.googleapis.com/auth/drive.readonly')) {
-      for (const file of files) {
-        const fileData = await classroom.getFile(file.id);
+  for (const entry of courseWorks) {
+    const { embed, files, youtube, links, forms } = buildEmbed<ClassroomAPI.Schema$CourseWork>(classroom, entry, true);
 
-        if (fileData) {
-          await (channel as TextChannel).send(new MessageAttachment(fileData.buffer, fileData.title));
-        }
-      }
-    }
+    if (channel) {
+      await channel.send({
+        content: `${config.bot.pingEveryone ? '@everyone ' : ''} **New classwork on Google Classroom!**`,
+        embed
+      });
 
-    if (youtube.length) {
-      for (const video of youtube) {
-        await (channel as TextChannel).send(video.url);
-      }
-    }
-
-    if (links.length) {
-      for (const link of links) {
-        await (channel as TextChannel).send(link.url);
-      }
-    }
-
-    if (forms.length) {
-      for (const form of forms) {
-        await (channel as TextChannel).send(form.url);
-      }
+      await sendAttachments(classroom, channel, { embed, files, youtube, links, forms });
     }
   }
 };
 
 const check = async (bot: Client, classroom: IClassroom) => {
   const announcements = await classroom.listAnnouncements();
+  let courseWork: ClassroomAPI.Schema$CourseWork[] = [];
+
+  if (config.google.scopes.includes('https://www.googleapis.com/auth/classroom.coursework.me.readonly')) {
+    courseWork = await classroom.listCourseWork();
+  }
 
   if (!fs.existsSync(DB_PATH)) {
-    sendUpdate(bot, classroom, announcements);
-    updateDB(announcements);
+    sendUpdate(bot, classroom, announcements, courseWork);
+    updateDB(announcements, courseWork);
     return;
   }
 
   const raw = fs.readFileSync(DB_PATH, { encoding: 'utf8' });
-  const json: ClassroomAPI.Schema$Announcement[] = JSON.parse(raw);
+  const json: IDatabase = JSON.parse(raw);
 
-  const newItems = differenceBy(announcements, json, 'id');
+  const newAnnouncements = differenceBy(announcements, json.announcements, 'id');
+  const newCourseWork = differenceBy(courseWork, json.courseWork, 'id');
 
-  if (newItems.length) {
-    sendUpdate(bot, classroom, newItems);
-    updateDB(announcements);
+  if (newAnnouncements.length || newCourseWork.length) {
+    sendUpdate(bot, classroom, newAnnouncements, newCourseWork);
+    updateDB(announcements, courseWork);
   }
 };
 

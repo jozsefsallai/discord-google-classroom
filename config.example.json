@@ -6,7 +6,8 @@
     "token": "discord bot token",
     "channel": "the ID of the notification channel",
     "checkInterval": 5,
-    "pingEveryone": false
+    "pingEveryone": false,
+    "timezone": "UTC"
   },
   "google": {
     "clientId": "Google OAuth2 client id",

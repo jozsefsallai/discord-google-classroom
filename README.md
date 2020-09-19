@@ -18,6 +18,13 @@ https://www.googleapis.com/auth/classroom.courses.readonly
 https://www.googleapis.com/auth/classroom.announcements.readonly
 ```
 
+If you want to get notified about classwork too, you also need to grant this
+scope:
+
+```
+https://www.googleapis.com/auth/classroom.coursework.me.readonly
+```
+
 If you want the attached Google Drive files to be uploaded to the channel (as
 long as they're less than 8 MB in size), you also need this scope:
 
@@ -104,6 +111,10 @@ posts.
 
 If set to `true`, the bot will ping @everyone when sending a notification.
 
+### `bot.timezone`
+
+An IANA-compliant timezone string. Defaults to `UTC`. Example: `Europe/Berlin`.
+
 ### `google.*`
 
 Properties that are required for authenticating with your Google app.
@@ -128,6 +139,9 @@ bot to function correctly.
 to course objects. `classroom.announcements.readonly` is obviously required for
 listing and checking new posts.
 
+`classroom.coursework.me.readonly` is an optional scope that is required only if
+you want to be notified about classwork too, not just announcements.
+
 `drive.readonly` is an optional scope that is used for fetching the attached
 Google Drive files and sending them to your Discord channel. If you don't need
 this feature, just don't provide this scope.
@@ -135,11 +149,6 @@ this feature, just don't provide this scope.
 #### `enrollmentCodes`
 
 An array of codes that you used when you joined the Google Classroom course.
-
-## TODO
-
-- [x] Support for other attachment types in announcements (link, YouTube, form)
-- [ ] Coursework notifications
 
 ## Contribution
 
