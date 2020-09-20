@@ -11,7 +11,7 @@ export interface IClassroom {
   getAuthToken(): Promise<Credentials>;
   verifyAndUpdateToken(token: string | null | undefined): void;
   authorize(): Promise<void>;
-  setCoursesByEnrollmentCode(): Promise<void>;
+  setCourses(): Promise<void>;
   listAnnouncements(): Promise<ClassroomAPI.Schema$Announcement[]>;
   listCourseWork(): Promise<ClassroomAPI.Schema$CourseWork[]>;
   getCourseById(id: string): ClassroomAPI.Schema$Course | undefined;

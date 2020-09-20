@@ -80,14 +80,27 @@ class Classroom implements IClassroom {
     this.verifyAndUpdateToken(token);
   }
 
-  async setCoursesByEnrollmentCode() {
-    const { enrollmentCodes } = config.google;
+  async setCourses() {
+    const { linkIDs, enrollmentCodes } = config.google;
+
     const classroom = google.classroom({ version: 'v1', auth: this.client });
 
     const { data: { courses } } = await classroom.courses.list();
 
     if (courses?.length) {
-      this.courses = courses.filter(course => course.enrollmentCode && enrollmentCodes.includes(course.enrollmentCode));
+      this.courses = courses.filter(course => {
+        if (enrollmentCodes?.length && course.enrollmentCode && enrollmentCodes.includes(course.enrollmentCode)) {
+          return true;
+        }
+
+        const linkID = course.alternateLink?.split('/').pop();
+
+        if (linkIDs?.length && linkID && linkIDs.includes(linkID)) {
+          return true;
+        }
+
+        return false;
+      });
     }
   }
 

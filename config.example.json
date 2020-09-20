@@ -20,7 +20,10 @@
       "https://www.googleapis.com/auth/classroom.announcements.readonly"
     ],
     "enrollmentCodes": [
-      "list of course enrollment codes"
+      "list of course enrollment codes (optional if linkIDs is present)"
+    ],
+    "linkIDs": [
+      "list of course link IDs (optional if enrollmentCodes is present)"
     ]
   }
 }

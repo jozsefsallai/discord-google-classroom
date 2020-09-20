@@ -149,6 +149,15 @@ this feature, just don't provide this scope.
 #### `enrollmentCodes`
 
 An array of codes that you used when you joined the Google Classroom course.
+This is optional if `linkIDs` is specified.
+
+#### `linkIDs`
+
+An array of link IDs (last component of the classroom's URL). For example, the
+link ID of https://classroom.google.com/u/0/c/MTA7AfC10BO0AVEt is
+`MTA7AfC10BO0AVEt`. This is useful if you have access to the classroom but you
+don't know what the enrollment code is. The parameter is optional if you've
+specified `enrollmentCodes` instead.
 
 ## Contribution
 

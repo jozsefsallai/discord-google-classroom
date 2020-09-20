@@ -22,7 +22,8 @@ interface IGoogleConfig {
   tokenURI: string;
   redirectURI: string;
   scopes: string[];
-  enrollmentCodes: string[];
+  enrollmentCodes?: string[];
+  linkIDs?: string[];
 }
 
 export interface IConfig {

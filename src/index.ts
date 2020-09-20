@@ -35,7 +35,7 @@ const run = async () => {
   const classroom = new Classroom();
 
   await classroom.authorize();
-  await classroom.setCoursesByEnrollmentCode();
+  await classroom.setCourses();
   await startBot(classroom);
 
   if (!foundToken && server) {
