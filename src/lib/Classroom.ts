@@ -147,19 +147,23 @@ class Classroom implements IClassroom {
   async getFile(fileId: string): Promise<IDriveFileData | null> {
     const drive = google.drive({ version: 'v2', auth: this.client });
 
-    const file = await drive.files.get({ fileId });
-    const { title, fileSize } = file.data;
+    try {
+      const file = await drive.files.get({ fileId });
+      const { title, fileSize } = file.data;
 
-    if (fileSize && parseInt(fileSize, 10) > 8e6) {
+      if (fileSize && parseInt(fileSize, 10) > 8e6) {
+        return null;
+      }
+
+      const res = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'arraybuffer' });
+
+      return {
+        title: `${title}`,
+        buffer: Buffer.from(res.data)
+      };
+    } catch (err) {
       return null;
     }
-
-    const res = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'arraybuffer' });
-
-    return {
-      title: `${title}`,
-      buffer: Buffer.from(res.data)
-    };
   }
 }
 
